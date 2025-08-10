@@ -1,0 +1,42 @@
+services:
+  # Backend service
+  backend:
+    build:
+      context: ./backend/storyaudio  # Updated path to match your structure
+      dockerfile: Dockerfile
+    container_name: story-audio-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Pass your API keys as environment variables
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TTS_API_KEY=${TTS_API_KEY}
+    networks:
+      - story-audio-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: story-audio-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - story-audio-network
+
+# Create a custom network for service communication
+networks:
+  story-audio-network:
+    driver: bridge
+
+# Optional: Define volumes for data persistence
+volumes:
+  app-data:
